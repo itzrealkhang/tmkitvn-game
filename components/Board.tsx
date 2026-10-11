@@ -2,14 +2,16 @@
 
 import { useRef, useState, useEffect } from "react";
 import { Board as BoardType, Shape } from "@/lib/types";
-import { BOARD_SIZE, findFullLines } from "@/lib/gameLogic";
+import { BOARD_SIZE } from "@/lib/gameLogic";
 import { motion } from "framer-motion";
 
 interface Props {
   board: BoardType;
   selectedShape: Shape | null;
-  onPlace: (row: number, col: number) => void;  // ← BỎ shape
+  onPlace: (row: number, col: number) => void;
   clearingLines: { rows: number[]; cols: number[] };
+  onCellHover?: (row: number, col: number) => void;
+  dragPreview?: { row: number; col: number } | null;
 }
 
 export default function Board({
@@ -17,10 +19,12 @@ export default function Board({
   selectedShape,
   onPlace,
   clearingLines,
+  onCellHover,
+  dragPreview,
 }: Props) {
   const boardRef = useRef<HTMLDivElement>(null);
-  const [previewPos, setPreviewPos] = useState<{ row: number; col: number } | null>(null);
   const [cellSize, setCellSize] = useState(40);
+  const [previewPos, setPreviewPos] = useState<{ row: number; col: number } | null>(null);
 
   useEffect(() => {
     const calcSize = () => {
@@ -32,6 +36,15 @@ export default function Board({
     window.addEventListener("resize", calcSize);
     return () => window.removeEventListener("resize", calcSize);
   }, []);
+
+  // Sync preview với dragPreview từ ngoài
+  useEffect(() => {
+    if (dragPreview) {
+      setPreviewPos(dragPreview);
+    } else {
+      setPreviewPos(null);
+    }
+  }, [dragPreview]);
 
   const isClearing = (row: number, col: number) =>
     clearingLines.rows.includes(row) || clearingLines.cols.includes(col);
@@ -52,6 +65,13 @@ export default function Board({
     return selectedShape.color;
   };
 
+  // Mouse hover on cell
+  const handleCellHover = (r: number, c: number) => {
+    if (selectedShape && onCellHover) {
+      onCellHover(r, c);
+    }
+  };
+
   return (
     <div
       ref={boardRef}
@@ -59,6 +79,7 @@ export default function Board({
       style={{
         boxShadow: "0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
       }}
+      data-board="true"
     >
       <div
         className="grid gap-1"
@@ -82,8 +103,11 @@ export default function Board({
                     : { scale: 1, opacity: 1 }
                 }
                 transition={{ duration: 0.4 }}
-                onClick={() => onPlace(r, c)}   // ← gọi với (row, col)
+                onClick={() => onPlace(r, c)}
+                onMouseEnter={() => handleCellHover(r, c)}
                 className="rounded-md cursor-pointer hover:brightness-110"
+                data-row={r}
+                data-col={c}
                 style={{
                   width: cellSize,
                   height: cellSize,

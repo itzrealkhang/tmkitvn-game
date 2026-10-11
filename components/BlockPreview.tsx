@@ -6,32 +6,43 @@ import { motion } from "framer-motion";
 interface Props {
   shape: Shape;
   cellSize?: number;
-  onClick?: () => void;
   selected?: boolean;
   disabled?: boolean;
+  onSelect?: () => void;
+  onDragStart?: (e: React.DragEvent) => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
+  index?: number;
 }
 
 export default function BlockPreview({
   shape,
   cellSize = 32,
-  onClick,
   selected = false,
   disabled = false,
+  onSelect,
+  onDragStart,
+  onTouchStart,
+  index,
 }: Props) {
   const rows = shape.pattern.length;
   const cols = shape.pattern[0].length;
 
   return (
     <motion.div
-      whileHover={!disabled ? { scale: 1.1 } : {}}
+      draggable={!disabled}
+      onDragStart={onDragStart}
+      onTouchStart={onTouchStart}
+      onMouseDown={onSelect}
+      whileHover={!disabled ? { scale: 1.05 } : {}}
       whileTap={!disabled ? { scale: 0.95 } : {}}
-      onClick={!disabled ? onClick : undefined}
-      className={`p-2 rounded-xl transition-all ${
+      className={`p-2 rounded-xl transition-all select-none ${
         selected ? "bg-white/20 ring-2 ring-white" : "hover:bg-white/10"
-      } ${disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
+      } ${disabled ? "opacity-30 cursor-not-allowed" : "cursor-grab active:cursor-grabbing"}`}
+      data-shape-index={index}
+      style={{ touchAction: "none" }}
     >
       <div
-        className="grid gap-[3px]"
+        className="grid gap-[3px] pointer-events-none"
         style={{
           gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
         }}
