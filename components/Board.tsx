@@ -2,13 +2,13 @@
 
 import { useRef, useState, useEffect } from "react";
 import { Board as BoardType, Shape } from "@/lib/types";
-import { BOARD_SIZE, canPlaceShape, findFullLines } from "@/lib/gameLogic";
+import { BOARD_SIZE, findFullLines } from "@/lib/gameLogic";
 import { motion } from "framer-motion";
 
 interface Props {
   board: BoardType;
   selectedShape: Shape | null;
-  onPlace: (shape: Shape, row: number, col: number) => void;
+  onPlace: (row: number, col: number) => void;  // ← BỎ shape
   clearingLines: { rows: number[]; cols: number[] };
 }
 
@@ -22,7 +22,6 @@ export default function Board({
   const [previewPos, setPreviewPos] = useState<{ row: number; col: number } | null>(null);
   const [cellSize, setCellSize] = useState(40);
 
-  // Calculate cell size based on viewport
   useEffect(() => {
     const calcSize = () => {
       const vw = Math.min(window.innerWidth - 32, 480);
@@ -34,27 +33,20 @@ export default function Board({
     return () => window.removeEventListener("resize", calcSize);
   }, []);
 
-  // Check if cell is clearing
   const isClearing = (row: number, col: number) =>
     clearingLines.rows.includes(row) || clearingLines.cols.includes(col);
 
-  // Is preview cell
   const isPreview = (row: number, col: number) => {
     if (!selectedShape || !previewPos) return false;
-
     const { row: pr, col: pc } = previewPos;
     const pattern = selectedShape.pattern;
-
     const r = row - pr;
     const c = col - pc;
-
     if (r < 0 || r >= pattern.length) return false;
     if (c < 0 || c >= pattern[0].length) return false;
-
     return pattern[r][c] === 1;
   };
 
-  // Get color for preview
   const getPreviewColor = () => {
     if (!selectedShape) return "";
     return selectedShape.color;
@@ -90,7 +82,8 @@ export default function Board({
                     : { scale: 1, opacity: 1 }
                 }
                 transition={{ duration: 0.4 }}
-                className="rounded-md"
+                onClick={() => onPlace(r, c)}   // ← gọi với (row, col)
+                className="rounded-md cursor-pointer hover:brightness-110"
                 style={{
                   width: cellSize,
                   height: cellSize,
