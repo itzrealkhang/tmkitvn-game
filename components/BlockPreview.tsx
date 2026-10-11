@@ -1,7 +1,6 @@
 "use client";
 
 import { Shape } from "@/lib/types";
-import { motion } from "framer-motion";
 
 interface Props {
   shape: Shape;
@@ -9,8 +8,8 @@ interface Props {
   selected?: boolean;
   disabled?: boolean;
   onSelect?: () => void;
-  onDragStart?: (e: React.DragEvent) => void;
-  onTouchStart?: (e: React.TouchEvent) => void;
+  onDragStart?: React.DragEventHandler<HTMLDivElement>;
+  onTouchStart?: React.TouchEventHandler<HTMLDivElement>;
   index?: number;
 }
 
@@ -28,16 +27,20 @@ export default function BlockPreview({
   const cols = shape.pattern[0].length;
 
   return (
-    <motion.div
+    <div
       draggable={!disabled}
       onDragStart={onDragStart}
       onTouchStart={onTouchStart}
       onMouseDown={onSelect}
-      whileHover={!disabled ? { scale: 1.05 } : {}}
-      whileTap={!disabled ? { scale: 0.95 } : {}}
       className={`p-2 rounded-xl transition-all select-none ${
-        selected ? "bg-white/20 ring-2 ring-white" : "hover:bg-white/10"
-      } ${disabled ? "opacity-30 cursor-not-allowed" : "cursor-grab active:cursor-grabbing"}`}
+        selected
+          ? "bg-white/20 ring-2 ring-white scale-110"
+          : "hover:bg-white/10 hover:scale-105"
+      } ${
+        disabled
+          ? "opacity-30 cursor-not-allowed"
+          : "cursor-grab active:cursor-grabbing active:scale-95"
+      }`}
       data-shape-index={index}
       style={{ touchAction: "none" }}
     >
@@ -65,6 +68,6 @@ export default function BlockPreview({
           ))
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
